@@ -16,6 +16,11 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 //
 
 #include "FtdiUsbSerialDriver.h"
+#include <Guid/PcAnsi.h>
+#include <Guid/TtyTerm.h>
+#include <Guid/SerialPortLibVendor.h>
+#include <Library/UefiBootManagerLib.h>
+
 
 //
 // Table of supported devices. This is the device information that this
@@ -37,6 +42,18 @@ EFI_DRIVER_BINDING_PROTOCOL  gUsbSerialDriverBinding = {
   NULL,
   NULL
 };
+
+typedef enum _TYPE_OF_TERMINAL {
+  TerminalTypePcAnsi                = 0,
+  TerminalTypeVt100,
+  TerminalTypeVt100Plus,
+  TerminalTypeVtUtf8,
+  TerminalTypeTtyTerm,
+  TerminalTypeLinux,
+  TerminalTypeXtermR6,
+  TerminalTypeVt400,
+  TerminalTypeSCO
+} TYPE_OF_TERMINAL;
 
 //
 // Table with the nearest power of 2 for the numbers 0-15
@@ -1706,7 +1723,8 @@ UsbSerialDriverBindingStart (
   UART_FLOW_CONTROL_DEVICE_PATH       *FlowControl;
   UINT32                              Control;
   EFI_DEVICE_PATH_PROTOCOL            *TempDevicePath;
-
+  EFI_GUID                            TerminalTypeGuid;
+  
   UsbSerialDevice = AllocateZeroPool (sizeof (USB_SER_DEV));
   ASSERT (UsbSerialDevice != NULL);
 
@@ -1917,6 +1935,21 @@ UsbSerialDriverBindingStart (
   UsbSerialDevice->FlowControlDevicePath.Header.Length[1] = (UINT8) ((sizeof (UART_FLOW_CONTROL_DEVICE_PATH)) >> 8);
   UsbSerialDevice->FlowControlDevicePath.FlowControlMap = 0;
 
+  switch (PcdGet8 (PcdDefaultTerminalType)) {
+  case TerminalTypePcAnsi:    TerminalTypeGuid = gEfiPcAnsiGuid;      break;
+  case TerminalTypeVt100:     TerminalTypeGuid = gEfiVT100Guid;       break;
+  case TerminalTypeVt100Plus: TerminalTypeGuid = gEfiVT100PlusGuid;   break;
+  case TerminalTypeVtUtf8:    TerminalTypeGuid = gEfiVTUTF8Guid;      break;
+  case TerminalTypeTtyTerm:   TerminalTypeGuid = gEfiTtyTermGuid;     break;
+  case TerminalTypeLinux:     TerminalTypeGuid = gEdkiiLinuxTermGuid; break;
+  case TerminalTypeXtermR6:   TerminalTypeGuid = gEdkiiXtermR6Guid;   break;
+  case TerminalTypeVt400:     TerminalTypeGuid = gEdkiiVT400Guid;     break;
+  case TerminalTypeSCO:       TerminalTypeGuid = gEdkiiSCOTermGuid;   break;
+  default:                    TerminalTypeGuid = gEfiPcAnsiGuid;      break;
+  }
+
+  CopyGuid (&UsbSerialDevice->FlowControlDevicePath.Guid, &TerminalTypeGuid);
+  
   Status = SetAttributesInternal (
              UsbSerialDevice, 
              UsbSerialDevice->LastSettings.BaudRate,

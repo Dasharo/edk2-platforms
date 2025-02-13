@@ -34,6 +34,7 @@
 
 [Packages]
   MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
 
 [LibraryClasses]
   UefiDriverEntryPoint
@@ -46,6 +47,19 @@
 
 [Guids]
   gEfiUartDevicePathGuid
+  gEfiPcAnsiGuid
+  gEfiVT100Guid
+  gEfiVT100PlusGuid
+  gEfiVTUTF8Guid
+  gEfiTtyTermGuid
+  gEdkiiLinuxTermGuid
+  gEdkiiXtermR6Guid
+  gEdkiiVT400Guid
+  gEdkiiSCOTermGuid
+  gEfiPcAnsiGuid
+
+[Pcd]
+  gEfiMdePkgTokenSpaceGuid.PcdDefaultTerminalType
 
 [Protocols]
   ## TO_START
