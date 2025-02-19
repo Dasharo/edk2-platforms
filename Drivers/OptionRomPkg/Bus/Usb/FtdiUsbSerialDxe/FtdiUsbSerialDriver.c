@@ -1449,7 +1449,8 @@ ResetInternal (
                                      &ReturnValue
                                      );
   if (EFI_ERROR (Status)) {
-    return EFI_DEVICE_ERROR;
+    DEBUG ((DEBUG_WARN, "FTDI: Reset failed, continuing anyway\n"));
+    return EFI_SUCCESS;  // Just ignore the failure
   }
   return Status;
 }
