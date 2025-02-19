@@ -461,7 +461,7 @@ EncodeBaudRateForFtdi (
   Divisor = (Divisor & ~(0xF)) + (gRoundedPowersOf2[Divisor & 0xF]);
 
   //
-  // Check to make sure computed divisor is within 
+  // Check to make sure computed divisor is within
   // the min and max that FTDI controller will accept
   //
   if (Divisor < FTDI_MIN_DIVISOR) {
@@ -1111,7 +1111,7 @@ StatusError:
 /**
   Internal function that performs a Usb Control Transfer to set the Dtr value on
   the Usb Serial Device.
-  
+
   @param  UsbIo[in]                  Usb Io Protocol instance pointer
   @param  RtsEnable[in]              Data on the Enable/Disable status of the
                                      Rts for the Usb Serial Device
@@ -1390,18 +1390,31 @@ ResetInternal (
   DevReq.Index       = FTDI_PORT_IDENTIFIER;
   DevReq.Length      = 0; //indicates that there is not data phase in this request
 
+ // First, send RESET_PORT_RESET (0x0)
+  DevReq.Value       = 0x0; // RESET
   Status = UsbSerialDevice->UsbIo->UsbControlTransfer (
                                      UsbSerialDevice->UsbIo,
                                      &DevReq,
-                                     EfiUsbDataIn,
+                                     EfiUsbDataOut,
                                      WDR_TIMEOUT,
-                                     &ConfigurationValue,
-                                     1,
+                                     NULL,
+                                     0,
                                      &ReturnValue
                                      );
-  if (EFI_ERROR (Status)) {
-    return EFI_DEVICE_ERROR;
-  }
+
+  // Now send PURGE_RX (0x1)
+  DevReq.Value       = 0x1; // PURGE_RX
+  Status = UsbSerialDevice->UsbIo->UsbControlTransfer (
+                                     UsbSerialDevice->UsbIo,
+                                     &DevReq,
+                                     EfiUsbDataOut,
+                                     WDR_TIMEOUT,
+                                     NULL,
+                                     0,
+                                     &ReturnValue
+                                     );
+
+  DEBUG ((DEBUG_INFO, "FTDI: ResetInternal() - PURGE_RX returned %r\n", Status));
 
   DevReq.Request     = FTDI_COMMAND_RESET_PORT;
   DevReq.RequestType = USB_REQ_TYPE_VENDOR;
@@ -1798,7 +1811,7 @@ UsbSerialDriverBindingStart (
               //
               // Clear bits that are not allowed to be passed to SetControl
               //
-              Control &= (EFI_SERIAL_REQUEST_TO_SEND | 
+              Control &= (EFI_SERIAL_REQUEST_TO_SEND |
                           EFI_SERIAL_DATA_TERMINAL_READY |
                           EFI_SERIAL_HARDWARE_LOOPBACK_ENABLE |
                           EFI_SERIAL_SOFTWARE_LOOPBACK_ENABLE |
@@ -1917,12 +1930,27 @@ UsbSerialDriverBindingStart (
   UsbSerialDevice->FlowControlDevicePath.Header.Length[1] = (UINT8) ((sizeof (UART_FLOW_CONTROL_DEVICE_PATH)) >> 8);
   UsbSerialDevice->FlowControlDevicePath.FlowControlMap = 0;
 
+  switch (PcdGet8 (PcdDefaultTerminalType)) {
+  case TerminalTypePcAnsi:    TerminalTypeGuid = gEfiPcAnsiGuid;      break;
+  case TerminalTypeVt100:     TerminalTypeGuid = gEfiVT100Guid;       break;
+  case TerminalTypeVt100Plus: TerminalTypeGuid = gEfiVT100PlusGuid;   break;
+  case TerminalTypeVtUtf8:    TerminalTypeGuid = gEfiVTUTF8Guid;      break;
+  case TerminalTypeTtyTerm:   TerminalTypeGuid = gEfiTtyTermGuid;     break;
+  case TerminalTypeLinux:     TerminalTypeGuid = gEdkiiLinuxTermGuid; break;
+  case TerminalTypeXtermR6:   TerminalTypeGuid = gEdkiiXtermR6Guid;   break;
+  case TerminalTypeVt400:     TerminalTypeGuid = gEdkiiVT400Guid;     break;
+  case TerminalTypeSCO:       TerminalTypeGuid = gEdkiiSCOTermGuid;   break;
+  default:                    TerminalTypeGuid = gEfiPcAnsiGuid;      break;
+  }
+
+  CopyGuid (&UsbSerialDevice->FlowControlDevicePath.Guid, &TerminalTypeGuid);
+
   Status = SetAttributesInternal (
-             UsbSerialDevice, 
+             UsbSerialDevice,
              UsbSerialDevice->LastSettings.BaudRate,
-             UsbSerialDevice->LastSettings.ReceiveFifoDepth, 
+             UsbSerialDevice->LastSettings.ReceiveFifoDepth,
              UsbSerialDevice->LastSettings.Timeout,
-             UsbSerialDevice->LastSettings.Parity, 
+             UsbSerialDevice->LastSettings.Parity,
              UsbSerialDevice->LastSettings.DataBits,
              UsbSerialDevice->LastSettings.StopBits
              );
@@ -2286,11 +2314,11 @@ SetControlBits (
   EFI_STATUS    Status;
   USB_SER_DEV   *UsbSerialDevice;
   CONTROL_BITS  ControlBits;
-  
+
   UsbSerialDevice = USB_SER_DEV_FROM_THIS (This);
-  
+
   //
-  // check for invalid control parameters 
+  // check for invalid control parameters
   //
   if ((Control & (~(EFI_SERIAL_REQUEST_TO_SEND          |
                     EFI_SERIAL_DATA_TERMINAL_READY      |
