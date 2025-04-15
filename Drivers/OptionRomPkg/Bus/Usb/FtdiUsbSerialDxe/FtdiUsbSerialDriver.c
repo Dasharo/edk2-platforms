@@ -1719,7 +1719,6 @@ UsbSerialDriverBindingStart (
   UART_DEVICE_PATH                    *Uart;
   UART_FLOW_CONTROL_DEVICE_PATH       *FlowControl;
   UINT32                              Control;
-  EFI_DEVICE_PATH_PROTOCOL            *TempDevicePath;
 
   UsbSerialDevice = AllocateZeroPool (sizeof (USB_SER_DEV));
   ASSERT (UsbSerialDevice != NULL);
@@ -1923,29 +1922,6 @@ UsbSerialDriverBindingStart (
   UsbSerialDevice->UartDevicePath.Header.Length[0] = (UINT8) (sizeof (UART_DEVICE_PATH));
   UsbSerialDevice->UartDevicePath.Header.Length[1] = (UINT8) ((sizeof (UART_DEVICE_PATH)) >> 8);
 
-  //
-  // set the values of UsbSerialDevice->FlowControlDevicePath
-  UsbSerialDevice->FlowControlDevicePath.Header.Type = MESSAGING_DEVICE_PATH;
-  UsbSerialDevice->FlowControlDevicePath.Header.SubType = MSG_VENDOR_DP;
-  UsbSerialDevice->FlowControlDevicePath.Header.Length[0] = (UINT8) (sizeof (UART_FLOW_CONTROL_DEVICE_PATH));
-  UsbSerialDevice->FlowControlDevicePath.Header.Length[1] = (UINT8) ((sizeof (UART_FLOW_CONTROL_DEVICE_PATH)) >> 8);
-  UsbSerialDevice->FlowControlDevicePath.FlowControlMap = 0;
-
-  switch (PcdGet8 (PcdDefaultTerminalType)) {
-  case TerminalTypePcAnsi:    TerminalTypeGuid = gEfiPcAnsiGuid;      break;
-  case TerminalTypeVt100:     TerminalTypeGuid = gEfiVT100Guid;       break;
-  case TerminalTypeVt100Plus: TerminalTypeGuid = gEfiVT100PlusGuid;   break;
-  case TerminalTypeVtUtf8:    TerminalTypeGuid = gEfiVTUTF8Guid;      break;
-  case TerminalTypeTtyTerm:   TerminalTypeGuid = gEfiTtyTermGuid;     break;
-  case TerminalTypeLinux:     TerminalTypeGuid = gEdkiiLinuxTermGuid; break;
-  case TerminalTypeXtermR6:   TerminalTypeGuid = gEdkiiXtermR6Guid;   break;
-  case TerminalTypeVt400:     TerminalTypeGuid = gEdkiiVT400Guid;     break;
-  case TerminalTypeSCO:       TerminalTypeGuid = gEdkiiSCOTermGuid;   break;
-  default:                    TerminalTypeGuid = gEfiPcAnsiGuid;      break;
-  }
-
-  CopyGuid (&UsbSerialDevice->FlowControlDevicePath.Guid, &TerminalTypeGuid);
-
   Status = SetAttributesInternal (
              UsbSerialDevice,
              UsbSerialDevice->LastSettings.BaudRate,
@@ -2069,15 +2045,6 @@ UsbSerialDriverBindingStart (
                                   ParentDevicePath,
                                   (EFI_DEVICE_PATH_PROTOCOL *) &UsbSerialDevice->UartDevicePath
                                   );
-  //
-  // Continue building the device path by appending the flow control node
-  //
-  TempDevicePath = UsbSerialDevice->DevicePath;
-  UsbSerialDevice->DevicePath = AppendDevicePathNode (
-                                  TempDevicePath,
-                                  (EFI_DEVICE_PATH_PROTOCOL *) &UsbSerialDevice->FlowControlDevicePath
-                                  );
-  FreePool (TempDevicePath);
 
   if (UsbSerialDevice->DevicePath == NULL) {
     Status = EFI_OUT_OF_RESOURCES;
