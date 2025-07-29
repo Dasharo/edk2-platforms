@@ -1910,7 +1910,7 @@ UsbSerialDriverBindingStart (
   //
   UsbSerialDevice->ControlValues.DtrState            = FALSE;
   UsbSerialDevice->ControlValues.RtsState            = FALSE;
-  UsbSerialDevice->ControlValues.HardwareFlowControl = FALSE;
+  UsbSerialDevice->ControlValues.HardwareFlowControl = TRUE;
   UsbSerialDevice->ControlValues.HardwareLoopBack    = FALSE;
   UsbSerialDevice->ControlValues.SoftwareLoopBack    = FALSE;
 
