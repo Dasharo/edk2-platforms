@@ -22,8 +22,8 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 // driver was developed with. Add other FTDI devices as needed.
 //
 USB_DEVICE gUSBDeviceList[] = {
-  {VID_FTDI, DID_FTDI_FT232},
   {VID_FTDI, DID_FTDI_FT232H},
+  {VID_FTDI, DID_FTDI_FT232},
   {0,0}
 };
 
