@@ -516,7 +516,6 @@ IsUsbSerial (
 {
   EFI_STATUS                 Status;
   EFI_USB_DEVICE_DESCRIPTOR  DeviceDescriptor;
-  CHAR16                     *StrMfg;
   BOOLEAN                    Found;
   UINT32                     Index;
 
