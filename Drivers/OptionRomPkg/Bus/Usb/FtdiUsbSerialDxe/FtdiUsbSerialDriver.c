@@ -23,6 +23,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 //
 USB_DEVICE gUSBDeviceList[] = {
   {VID_FTDI, DID_FTDI_FT232},
+  {VID_FTDI, DID_FTDI_FT232H},
   {0,0}
 };
 

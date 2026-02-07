@@ -35,6 +35,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 // Supported product ids
 //
 #define DID_FTDI_FT232    0x6001
+#define DID_FTDI_FT232H   0x6014
 
 //
 // FTDI Commands
@@ -184,7 +185,7 @@ typedef struct {
 //struct to describe the control bits of the device
 //true indicates enabled
 //false indicates disabled
-// 
+//
 typedef struct {
   BOOLEAN    HardwareFlowControl;
   BOOLEAN    DtrState;
@@ -194,7 +195,7 @@ typedef struct {
 } CONTROL_BITS;
 
 //
-//struct to describe the status bits of the device 
+//struct to describe the status bits of the device
 //true indicates enabled
 //false indicated disabled
 //
