@@ -335,7 +335,7 @@ SetInitialStatus (
   EFI_STATUS      Status;
   UINTN           BufferSize;
   EFI_TPL         Tpl;
-  UINT8           StatusBuffer[2];
+  UINT8           StatusBuffer[512];
 
   Status          = EFI_UNSUPPORTED;
   BufferSize      = sizeof (StatusBuffer);
@@ -516,6 +516,7 @@ IsUsbSerial (
 {
   EFI_STATUS                 Status;
   EFI_USB_DEVICE_DESCRIPTOR  DeviceDescriptor;
+  CHAR16                     *StrMfg;
   BOOLEAN                    Found;
   UINT32                     Index;
 
