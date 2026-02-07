@@ -516,7 +516,6 @@ IsUsbSerial (
 {
   EFI_STATUS                 Status;
   EFI_USB_DEVICE_DESCRIPTOR  DeviceDescriptor;
-  CHAR16                     *StrMfg;
   BOOLEAN                    Found;
   UINT32                     Index;
 
@@ -543,21 +542,21 @@ IsUsbSerial (
         // the selected language. If not False is returned indicating that this
         // is not a Usb Serial Device that can be managegd by this driver
         //
-        StrMfg = NULL;
-        Status = UsbIo->UsbGetStringDescriptor (
-                          UsbIo,
-                          USB_US_LANG_ID, // LANGID selector, should make this
-                                          // more robust to verify lang support
-                                          // for device
-                          DeviceDescriptor.StrManufacturer,
-                          &StrMfg
-                          );
-        if (StrMfg != NULL) {
-          FreePool (StrMfg);
-        }
-        if (EFI_ERROR (Status)) {
-          return FALSE;
-        }
+        //StrMfg = NULL;
+        //Status = UsbIo->UsbGetStringDescriptor (
+        //                  UsbIo,
+        //                  USB_US_LANG_ID, // LANGID selector, should make this
+        //                                  // more robust to verify lang support
+        //                                  // for device
+        //                  DeviceDescriptor.StrManufacturer,
+        //                  &StrMfg
+        //                  );
+        //if (StrMfg != NULL) {
+        //  FreePool (StrMfg);
+        //}
+        //if (EFI_ERROR (Status)) {
+        //  return FALSE;
+        //}
         return TRUE;
     }
     Index++;
