@@ -1847,8 +1847,7 @@ UsbSerialDriverBindingStart (
   EndpointNumber = UsbSerialDevice->InterfaceDescriptor.NumEndpoints;
 
   //
-  // Traverse endpoints to find the IN and OUT endpoints that will send and
-  // receive data.
+  // Traverse endpoints to find the IN and OUT endpoints
   //
   FoundIn = FALSE;
   FoundOut = FALSE;
@@ -1863,37 +1862,28 @@ UsbSerialDriverBindingStart (
       return Status;
     }
 
-    if (EndpointDescriptor.EndpointAddress == FTDI_ENDPOINT_ADDRESS_OUT) {
-      //
-      // Set the Out endpoint device
-      //
-      CopyMem (
-        &UsbSerialDevice->OutEndpointDescriptor,
-        &EndpointDescriptor,
-        sizeof(EndpointDescriptor)
-        );
-      FoundOut = TRUE;
-    }
+    // Check if it is a BULK endpoint (Attributes bits 1:0 must be 10 binary / 0x02 hex)
+    if ((EndpointDescriptor.Attributes & 0x03) == 0x02) {
 
-    if (EndpointDescriptor.EndpointAddress == FTDI_ENDPOINT_ADDRESS_IN) {
-      //
-      // Set the In endpoint device
-      //
-      CopyMem (
-        &UsbSerialDevice->InEndpointDescriptor,
-        &EndpointDescriptor,
-        sizeof(EndpointDescriptor)
-        );
-      FoundIn = TRUE;
+        // Check Direction bit (Bit 7: 1=IN, 0=OUT)
+        if ((EndpointDescriptor.EndpointAddress & 0x80) != 0) {
+            // It is an IN endpoint
+             CopyMem (
+                &UsbSerialDevice->InEndpointDescriptor,
+                &EndpointDescriptor,
+                sizeof(EndpointDescriptor)
+                );
+             FoundIn = TRUE;
+        } else {
+            // It is an OUT endpoint
+             CopyMem (
+                &UsbSerialDevice->OutEndpointDescriptor,
+                &EndpointDescriptor,
+                sizeof(EndpointDescriptor)
+                );
+             FoundOut = TRUE;
+        }
     }
-  }
-
-  if (!FoundIn || !FoundOut) {
-    //
-    // No interrupt endpoint found, then return unsupported.
-    //
-    Status = EFI_UNSUPPORTED;
-    goto ErrorExit;
   }
   //
   // set the initial values of UsbSerialDevice->LastSettings to the default
